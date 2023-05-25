@@ -33,19 +33,21 @@ class PostsContextViewsTest(TestCase):
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
-        # Собираем в словарь пары "имя_html_шаблона: reverse(name)"
-        templates_pages_names = {
-            'posts/index.html': reverse('posts:index'),
-            'posts/group_list.html':
-                reverse('posts:group_list', kwargs={'slug': self.group.slug}),
-            'posts/post_detail.html':
-                reverse('posts:post_detail', kwargs={'post_id': 1}),
-            'posts/profile.html':
-                reverse('posts:profile', kwargs={'username': 'HasNoName'}),
-            'posts/create_post.html': reverse('posts:post_create'),
+        # Собираем в словарь пары "reverse(name): имя_html_шаблона"
+        pages_templates = {
+            reverse('posts:index'): 'posts/index.html',
+            reverse('posts:group_list', kwargs={
+                'slug': self.group.slug}): 'posts/group_list.html',
+            reverse('posts:post_detail', kwargs={
+                'post_id': 1}): 'posts/post_detail.html',
+            reverse('posts:profile', kwargs={
+                'username': 'HasNoName'}): 'posts/profile.html',
+            reverse('posts:post_create'): 'posts/create_post.html',
+            reverse('posts:post_edit', kwargs={'post_id': self.post.pk}):
+                'posts/create_post.html'
         }
 
-        for template, reverse_name in templates_pages_names.items():
+        for reverse_name, template in pages_templates.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
@@ -155,6 +157,7 @@ class PostsPaginatorTest(TestCase):
 
 class PostsCreateTest(TestCase):
     """Тест на создание поста"""
+
     def setUp(self):
         """Установка данных."""
         self.user = User.objects.create_user(username='HasNoName')
