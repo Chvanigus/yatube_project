@@ -20,5 +20,8 @@ from django.urls import include, path
 urlpatterns = [
     # импорт правил из приложения posts
     path('', include('posts.urls')),
+    path('about/', include('about.urls')),
+    path('auth/', include('users.urls')),
     path('admin/', admin.site.urls),
+    path('auth/', include('django.contrib.auth.urls')),
 ]
