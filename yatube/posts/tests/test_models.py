@@ -30,10 +30,11 @@ class PostModelTest(TestCase):
         self.assertEqual(str(self.post), self.post.text)
 
     def test_verbose_name(self):
+        """Проверяем, что у моделей корректные verbose_name"""
         post = Post.objects.get(id=self.post.id)
         field_verbose_names = {
             'text': 'Текст поста',
-            'pub_date': 'Дата публикации',
+            'created': 'Дата создания',
             'author': 'Автор',
             'group': 'Группа',
         }
@@ -48,7 +49,7 @@ class PostModelTest(TestCase):
         post = Post.objects.get(id=self.post.id)
         field_help_texts = {
             'text': 'Введите текст поста',
-            'pub_date': '',
+            'created': '',
             'author': '',
             'group': 'Группа, к которой относится пост',
         }

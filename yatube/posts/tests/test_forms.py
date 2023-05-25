@@ -1,5 +1,4 @@
 """Тесты форм приложения posts."""
-from http import HTTPStatus
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
@@ -20,19 +19,22 @@ class PostsCreateFormTest(TestCase):
         )
 
     def setUp(self):
-        """ Создание авторизованного пользователя и группы"""
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
     def test_post_creation_form(self):
         """Проверяем, что форма создаёт новую запись."""
+
         form_data = {
             'text': 'Test post',
-            'group': self.group.id
+            'group': self.group.id,
         }
 
-        response = self.authorized_client.post(reverse('posts:post_create'),
-                                               data=form_data, follow=True)
+        response = self.authorized_client.post(
+                reverse('posts:post_create'),
+                data=form_data,
+                follow=True
+        )
 
         self.assertEqual(Post.objects.count(), 1)
         new_post = Post.objects.first()
@@ -54,7 +56,7 @@ class PostsCreateFormTest(TestCase):
 
         form_data = {
             'text': 'Updated post',
-            'group': self.group.id
+            'group': self.group.id,
         }
 
         response = self.authorized_client.post(

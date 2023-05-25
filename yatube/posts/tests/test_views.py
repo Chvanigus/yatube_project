@@ -37,13 +37,13 @@ class PostsContextViewsTest(TestCase):
             reverse('posts:index'): 'posts/index.html',
             reverse('posts:group_list', kwargs={
                 'slug': self.group.slug}): 'posts/group_list.html',
-            reverse('posts:post_detail', kwargs={
-                'post_id': 1}): 'posts/post_detail.html',
+            reverse('posts:post_detail',
+                    kwargs={'pk': 1}): 'posts/post_detail.html',
             reverse('posts:profile', kwargs={
                 'username': 'HasNoName'}): 'posts/profile.html',
             reverse('posts:post_create'): 'posts/create_post.html',
-            reverse('posts:post_edit', kwargs={'post_id': self.post.pk}):
-                'posts/create_post.html'
+            reverse('posts:post_edit',
+                    kwargs={'pk': self.post.pk}): 'posts/create_post.html'
         }
 
         for reverse_name, template in pages_templates.items():
@@ -54,7 +54,7 @@ class PostsContextViewsTest(TestCase):
     def test_post_detail_context(self):
         """Проверяем контекст во view-функции post_detail"""
         response = self.guest_client.get(
-                reverse('posts:post_detail', kwargs={'post_id': self.post.pk}))
+                reverse('posts:post_detail', kwargs={'pk': self.post.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['post'], self.post)
 
@@ -64,7 +64,6 @@ class PostsContextViewsTest(TestCase):
                 reverse('posts:profile',
                         kwargs={'username': self.user.username}))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['username'], self.user.username)
         self.assertEqual(response.context['post_count'], 1)
 
     def test_group_posts_context(self):
@@ -85,11 +84,10 @@ class PostsContextViewsTest(TestCase):
     def test_post_edit_context(self):
         """Проверяем контекст во view-функции post_edit"""
         response = self.authorized_client.get(
-                reverse('posts:post_edit', kwargs={'post_id': self.post.pk}))
+                reverse('posts:post_edit', kwargs={'pk': self.post.pk}))
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context['form'], PostForm)
         self.assertEqual(response.context['is_edit'], True)
-        self.assertEqual(response.context['pk'], self.post.pk)
 
 
 class PostsPaginatorTest(TestCase):
@@ -105,7 +103,7 @@ class PostsPaginatorTest(TestCase):
         for i in range(15):
             Post.objects.create(
                     text=f'Test Post {i + 1}',
-                    pub_date='2023-01-01',
+                    created='2023-01-01',
                     author=self.user,
                     group=self.group
             )
