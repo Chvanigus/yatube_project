@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
+{% load thumbnail %}
+{% block title %}Последние обновления на сайте{% endblock %}
 {% block content %}
   <!-- класс py-5 создает отступы сверху и снизу блока -->
   <div class="container py-5">
-    <h1>Последние обновления на сайте</h1>
     <article>
       {% for post in page_obj %}
         <ul>
@@ -10,7 +11,7 @@
             Автор: {{ post.author.get_full_name }}
           </li>
           <li>
-            Дата публикации: {{ post.pub_date|date:"d E Y" }}
+            Дата публикации: {{ post.created|date:"d E Y" }}
           </li>
           {% if post.group %}
             <li>
@@ -18,6 +19,9 @@
             </li>
           {% endif %}
         </ul>
+        {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+          <img class="card-img my-2" src="{{ im.url }}">
+        {% endthumbnail %}
         <p>{{ post.text }}</p>
         <a href="{% url 'posts:post_detail' post.pk %}">Подробная
           информация</a>
