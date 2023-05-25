@@ -33,7 +33,6 @@ class PostsContextViewsTest(TestCase):
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
-        # Собираем в словарь пары "reverse(name): имя_html_шаблона"
         pages_templates = {
             reverse('posts:index'): 'posts/index.html',
             reverse('posts:group_list', kwargs={
