@@ -17,6 +17,10 @@ class IndexView(ListView):
     paginate_by = 10
     context_object_name = 'post_list'
 
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related('author', 'group')
+        return queryset
+
 
 class GroupPostsView(ListView):
     """Посты по группам."""
@@ -26,8 +30,9 @@ class GroupPostsView(ListView):
     context_object_name = 'post_list'
 
     def get_queryset(self):
-        group = get_object_or_404(Group, slug=self.kwargs['slug'])
-        return Post.objects.filter(group=group)
+        return Post.objects.filter(
+                group__slug=self.kwargs['slug']
+        ).select_related('author', 'group')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,16 +49,22 @@ class ProfileView(ListView):
     context_object_name = 'post_list'
 
     def get_queryset(self):
-        author = User.objects.get(username=self.kwargs['username'])
-        return Post.objects.filter(author=author)
+        return Post.objects.filter(
+                author__username=self.kwargs['username']
+        ).select_related(
+                'author',
+                'group'
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        user = self.request.user
         author = User.objects.get(username=self.kwargs['username'])
 
-        following = Follow.objects.filter(user=user, author=author).exists()
+        following = Follow.objects.filter(
+                user=self.request.user,
+                author=author
+        ).exists()
 
         context['post_count'] = self.get_queryset().count()
         context['author'] = author
@@ -69,8 +80,14 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        comments = Comments.objects.filter(post_id=self.object.pk)
-        posts_count = Post.objects.filter(author=self.object.author).count()
+
+        comments = Comments.objects.filter(
+                post_id=self.object.pk
+        ).select_related('author')
+
+        posts_count = Post.objects.filter(
+                author=self.object.author
+        ).count()
 
         context['comments'] = comments
         context['form'] = CommentForm()
@@ -150,9 +167,14 @@ class FollowView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        follows = Follow.objects.filter(user_id=self.request.user)
+        follows = Follow.objects.filter(
+                user_id=self.request.user
+        ).select_related('author', 'user')
+
         authors = [follow.author for follow in follows]
-        return Post.objects.filter(author_id__in=authors)
+        return Post.objects.filter(
+                author_id__in=authors
+        ).select_related('group', 'author')
 
 
 class FollowAuthorView(LoginRequiredMixin, RedirectView):
