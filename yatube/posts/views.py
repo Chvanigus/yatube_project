@@ -2,12 +2,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, FormView, ListView, \
-    UpdateView
+    RedirectView, UpdateView
 
 from .forms import CommentForm, PostForm
-from .models import Comments, Group, Post, User
+from .models import Comments, Follow, Group, Post, User
 
 
 class IndexView(ListView):
@@ -44,12 +44,20 @@ class ProfileView(ListView):
     context_object_name = 'post_list'
 
     def get_queryset(self):
-        user = User.objects.get(username=self.kwargs['username'])
-        return Post.objects.filter(author=user)
+        author = User.objects.get(username=self.kwargs['username'])
+        return Post.objects.filter(author=author)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        user = self.request.user
+        author = User.objects.get(username=self.kwargs['username'])
+
+        following = Follow.objects.filter(user=user, author=author).exists()
+
         context['post_count'] = self.get_queryset().count()
+        context['author'] = author
+        context['following'] = following
         return context
 
 
@@ -133,3 +141,38 @@ class AddCommentFormView(LoginRequiredMixin, FormView):
 
     def get_success_url(self):
         return self.request.META.get('HTTP_REFERER')
+
+
+class FollowView(LoginRequiredMixin, ListView):
+    """Страница подписок пользователя"""
+    template_name = 'posts/follow.html'
+    model = Post
+    paginate_by = 10
+
+    def get_queryset(self):
+        follows = Follow.objects.filter(user_id=self.request.user)
+        authors = [follow.author for follow in follows]
+        return Post.objects.filter(author_id__in=authors)
+
+
+class FollowAuthorView(LoginRequiredMixin, RedirectView):
+    """Подписка на автора."""
+
+    def get_redirect_url(self, *args, **kwargs):
+        author = get_object_or_404(User, username=self.kwargs['username'])
+        follow = Follow.objects.get_or_create(
+                user_id=self.request.user.id,
+                author_id=author.id
+        )
+        print(follow)
+        return reverse('posts:profile', kwargs={'username': author.username})
+
+
+class UnfollowAuthorView(LoginRequiredMixin, RedirectView):
+    """Отписка от автора."""
+    permanent = False
+
+    def get_redirect_url(self, *args, **kwargs):
+        author = get_object_or_404(User, username=self.kwargs['username'])
+        Follow.objects.filter(user=self.request.user, author=author).delete()
+        return reverse('posts:profile', kwargs={'username': author.username})

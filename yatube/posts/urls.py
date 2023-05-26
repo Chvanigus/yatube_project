@@ -1,6 +1,7 @@
 """Urls приложения Posts."""
 
 from django.urls import path
+from django.views.decorators.cache import cache_page
 
 from . import views
 
@@ -9,7 +10,7 @@ app_name = 'posts'
 urlpatterns = [
     path(
             '',
-            views.IndexView.as_view(),
+            cache_page(20)(views.IndexView.as_view()),
             name='index'
     ),
     path(
@@ -41,5 +42,20 @@ urlpatterns = [
             'posts/<int:pk>/comment/',
             views.AddCommentFormView.as_view(),
             name='add_comment'
+    ),
+    path(
+            'follow/',
+            views.FollowView.as_view(),
+            name='follow_index'
+    ),
+    path(
+            'profile/<str:username>/follow/',
+            views.FollowAuthorView.as_view(),
+            name='profile_follow'
+    ),
+    path(
+            'profile/<str:username>/unfollow/',
+            views.UnfollowAuthorView.as_view(),
+            name='profile_unfollow'
     ),
 ]

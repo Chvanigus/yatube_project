@@ -79,3 +79,20 @@ class Comments(CreatedModel):
 
     def __str__(self):
         return self.text[:15]
+
+
+class Follow(models.Model):
+    """Модель подписок."""
+    user = models.ForeignKey(
+            User,
+            on_delete=models.CASCADE,
+            related_name='follower',
+            verbose_name='Пользователь',
+    )
+    author = models.ForeignKey(
+            User,
+            on_delete=models.CASCADE,
+            related_name='following',
+            verbose_name='Автор',
+            help_text='На какого автора подписан пользователь'
+    )
